@@ -1,0 +1,14 @@
+version: '2'
+
+services:
+    app-build:
+        build:
+            context: ./build-rpm
+            args:
+                golang_version: 1.8
+                glide_version: 0.12.3
+        container_name: x-msrv-build-app
+        volumes:
+            - ./:/go/src/github.com/nikolay-turpitko/x-msrv
+            - ./rpm-spec:/spec:ro
+            - ./deploy/rpms:/rpms

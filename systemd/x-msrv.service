@@ -1,0 +1,26 @@
+[Unit]
+Description=Sample microservice.
+Documentation=man:x-msrv
+Documentation=https://github.com/nikolay-turpitko/x-msrv
+Requires=network.target rsyslog.service
+After=network.target rsyslog.service
+
+[Service]
+Type=simple
+ExecStart=/usr/lib64/x-msrv/bin/x-msrv
+
+User=x-msrv
+Group=x-msrv
+
+NoNewPrivileges=yes
+PrivateDevices=yes
+PrivateTmp=yes
+ProtectHome=yes
+ProtectSystem=full
+StandardOutput=syslog+console
+StandardError=syslog+console
+ReadWriteDirectories=/proc/self
+ReadWriteDirectories=-/var/run
+
+[Install]
+WantedBy=multi-user.target

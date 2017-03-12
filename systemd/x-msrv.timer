@@ -1,0 +1,8 @@
+[Unit]
+Description=Timer for x-msrv.
+
+[Timer]
+OnCalendar=*:*:0/10
+
+[Install]
+WantedBy=timers.target

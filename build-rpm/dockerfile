@@ -1,0 +1,51 @@
+# Builds docker container to build Go app and package it with RPM.
+
+FROM centos:centos7
+
+MAINTAINER "Nikolay Turpitko" <nikolay [at] turpitko.com>
+
+ARG golang_version
+ARG glide_version
+
+ENV container=docker \
+    PATH=/usr/local/go/bin:/go/bin:$PATH \
+    GOPATH=/go
+
+RUN yum -q -y install deltarpm; \
+    yum -q -y update; \
+    yum -q -y install \
+        autoconf \
+        automake \
+        bzr \
+        ca-certificates \
+        checkpolicy \
+        createrepo \
+        curl \
+        gcc \
+        gcc-c++ \
+        gflags-devel \
+        git \
+        glibc-devel \
+        hardlink \
+        hostname \
+        kernel-devel \
+        libtools \
+        make \
+        mercurial \
+        openssl \
+        openssl-devel \
+        pcre-devel \
+        pkgconfig \
+        readline-devel \
+        rpm-build \
+        tar \
+        zlib-devel; \
+    yum -q -y clean all; \
+    curl -sSL https://storage.googleapis.com/golang/go${golang_version}.linux-amd64.tar.gz | tar -xz -C /usr/local; \
+    mkdir -p /go/src; \
+    curl -sSL https://github.com/Masterminds/glide/releases/download/v${glide_version}/glide-v${glide_version}-linux-amd64.tar.gz \
+    | tar -xz --strip=1 --no-same-owner --owner=root --group=root -C /usr/local/bin linux-amd64/glide
+
+COPY Makefile /Makefile
+
+ENTRYPOINT ["/usr/bin/make"]

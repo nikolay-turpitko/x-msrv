@@ -1,0 +1,55 @@
+version: '2'
+
+services:
+    app:
+        build: ./deploy
+        container_name: x-msrv-app
+        depends_on:
+            - db
+            - queue
+            - queue-lookup
+        privileged: true
+        volumes:
+            - /sys/fs/cgroup:/sys/fs/cgroup:ro
+        networks:
+            - x-msrv-net
+    db:
+        image: aerospike/aerospike-server
+        container_name: x-msrv-db
+        ports:
+            - "3000-3003:3000-3003"
+        networks:
+            - x-msrv-net
+    queue:
+        image: nsqio/nsq
+        container_name: x-msrv-queue
+        command: /nsqd --lookupd-tcp-address=nsqlookupd:4160
+        ports:
+            - "4150:4150"
+            - "4151:4151"
+        networks:
+            - x-msrv-net
+    queue-lookup:
+        image: nsqio/nsq
+        container_name: x-msrv-queue-lookup
+        command: /nsqlookupd
+        ports:
+            - "4160:4160"
+            - "4161:4161"
+        networks:
+            - x-msrv-net
+    queue-admin:
+        image: nsqio/nsq
+        container_name: x-msrv-queue-admin
+        command: /nsqadmin --lookupd-http-address=queue-lookup:4161
+        ports:
+            - "4171:4171"
+        depends_on:
+            - queue
+            - queue-lookup
+        networks:
+            - x-msrv-net
+
+networks:
+    x-msrv-net:
+        driver: bridge

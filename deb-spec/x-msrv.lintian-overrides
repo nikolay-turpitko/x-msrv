@@ -1,0 +1,3 @@
+x-msrv: embedded-library
+x-msrv: statically-linked-binary
+x-msrv: missing-dep-for-interpreter

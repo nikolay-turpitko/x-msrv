@@ -23,26 +23,30 @@ go test -compiler gc -ldflags '-H linux -s'
 go clean -i -r
 go install -compiler gc -ldflags '-H linux -s'
 rm -rf %{_builddir}
-mkdir -p %{_builddir}%{_libdir}/x-msrv/bin/
+mkdir -p %{_builddir}%{_bindir}
 mkdir -p %{_builddir}%{_sysconfdir}/x-msrv/
 mkdir -p %{_builddir}%{_unitdir}
 mkdir -p %{_builddir}%{_mandir}/man1
+mkdir -p %{_builddir}%{_sysconfdir}/x-msrv
 cp -p $appdir/LICENSE %{_builddir}
-cp -p $GOPATH/bin/x-msrv %{_builddir}%{_libdir}/x-msrv/bin/
+cp -p $GOPATH/bin/x-msrv %{_builddir}%{_bindir}
 cp -p $appdir/systemd/x-msrv.service %{_builddir}%{_unitdir}
 cp -p $appdir/systemd/x-msrv.timer %{_builddir}%{_unitdir}
+cp -p $appdir/etc/* %{_builddir}%{_sysconfdir}/x-msrv/
 pandoc $appdir/x-msrv.md -s -t man > %{_builddir}%{_mandir}/man1/x-msrv.1
 
 %install
 rm -rf %{buildroot}
-mkdir -p %{buildroot}%{_libdir}/x-msrv/bin/
+mkdir -p %{buildroot}%{_bindir}
 mkdir -p %{buildroot}%{_sysconfdir}/x-msrv/
 mkdir -p %{buildroot}%{_unitdir}
 mkdir -p %{buildroot}%{_mandir}/man1
-cp -p %{_builddir}%{_libdir}/x-msrv/bin/x-msrv %{buildroot}%{_libdir}/x-msrv/bin/
+mkdir -p %{buildroot}%{_sysconfdir}/x-msrv/
+cp -p %{_builddir}%{_bindir}/x-msrv %{buildroot}%{_bindir}
 cp -p %{_builddir}%{_unitdir}/x-msrv.service %{buildroot}%{_unitdir}
 cp -p %{_builddir}%{_unitdir}/x-msrv.timer %{buildroot}%{_unitdir}
 cp -p %{_builddir}%{_mandir}/man1/x-msrv.1 %{buildroot}%{_mandir}/man1
+cp -p %{_builddir}%{_sysconfdir}/x-msrv/* %{buildroot}%{_sysconfdir}/x-msrv/
 
 %clean
 rm -rf %{_builddir}
@@ -73,11 +77,12 @@ fi
 %files
 %doc LICENSE
 %{_mandir}/man1/*
-/usr/lib64/x-msrv/bin/x-msrv
+%{_bindir}/x-msrv
 %config %{_unitdir}/x-msrv.service
 %config %{_unitdir}/x-msrv.timer
+%config %{_sysconfdir}/x-msrv/*
 
 
 %changelog
-* Sun Mar 12 2017 Nikolay Turpitko <nikolay[at]turpitko.com> - 0.0.1-1
+* Sun Mar 12 2017 Nikolay Turpitko - 0.0.1-1
 - initial build version

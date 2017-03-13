@@ -3,7 +3,7 @@
 # spec file should use go build tools with $GOPATH var (or defaults)
 # outputs will be in /rpm
 
-SHELL = /bin/bash
+SHELL=/bin/bash
 
 all:
 	@rm -rf /root/rpmbuild

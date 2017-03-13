@@ -1,0 +1,19 @@
+# Builds docker container to run service managed by systemd (for acceptance test).
+
+FROM jrei/systemd-ubuntu
+
+MAINTAINER "Nikolay Turpitko"
+
+RUN apt-get -q -y update; \
+    apt-get -q -y upgrade; \
+    apt-get -q -y install \
+        gdebi \
+        rsyslog \
+        man; \
+    apt-get -q -y autoremove; \
+    apt-get -q -y autoclean
+
+COPY deb /deb
+
+RUN gdebi -n -q /deb/x-msrv_*.deb; \
+    systemctl enable x-msrv.service x-msrv.timer

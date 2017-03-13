@@ -2,7 +2,7 @@
 
 FROM centos/systemd
 
-MAINTAINER "Nikolay Turpitko" <nikolay [at] turpitko.com>
+MAINTAINER "Nikolay Turpitko"
 
 RUN yum -q -y install deltarpm; \
     yum -q -y update; \

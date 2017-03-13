@@ -7,7 +7,7 @@ After=network.target rsyslog.service
 
 [Service]
 Type=simple
-ExecStart=/usr/lib64/x-msrv/bin/x-msrv
+ExecStart=/usr/bin/x-msrv
 Restart=on-failure
 
 User=x-msrv

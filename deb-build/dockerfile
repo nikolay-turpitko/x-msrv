@@ -1,6 +1,6 @@
-# Builds docker container to build Go app and package it with RPM.
+# Builds docker container to build Go app and package it with DEB.
 
-FROM centos:centos7
+FROM ubuntu:16.04
 
 MAINTAINER "Nikolay Turpitko"
 
@@ -11,14 +11,17 @@ ENV container=docker \
     PATH=/usr/local/go/bin:/go/bin:$PATH \
     GOPATH=/go
 
-RUN yum -q -y install deltarpm; \
-    yum -q -y install epel-release; \
-    yum -q -y update; \
-    yum -q -y install \
+RUN apt-get -q -y update; \
+    apt-get -q -y upgrade; \
+    apt-get -q -y install \
         make \
-        pandoc \
-        rpm-build; \
-    yum -q -y clean all; \
+        devscripts \
+        lintian \
+        dh-make \
+        dh-systemd \
+        pandoc; \
+    apt-get -q -y autoremove; \
+    apt-get -q -y autoclean; \
     curl -sSL https://storage.googleapis.com/golang/go${golang_version}.linux-amd64.tar.gz | tar -xz -C /usr/local; \
     mkdir -p /go/src; \
     curl -sSL https://github.com/Masterminds/glide/releases/download/v${glide_version}/glide-v${glide_version}-linux-amd64.tar.gz \

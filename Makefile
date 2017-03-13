@@ -11,8 +11,12 @@ all: | clean build
 	@sudo PKG_TYPE=$(PKG_TYPE) docker-compose -f ./docker-compose-build.yml rm -f -v
 
 clean:
-	@sudo rm -rf ./$(PKG_TYPE)-deploy/$(PKG_TYPE)/x86_64
+	@sudo rm -rf ./$(PKG_TYPE)-deploy/$(PKG_TYPE)/*
 
 build:
 	@sudo PKG_TYPE=$(PKG_TYPE) docker-compose -f ./docker-compose-build.yml up --build
-	@until [ -d ./$(PKG_TYPE)-deploy/$(PKG_TYPE)/x86_64 ]; do sleep 5; done
+	@if [ "$(PKG_TYPE)" == "rpm" ]; then \
+		until [ -d ./$(PKG_TYPE)-deploy/$(PKG_TYPE)/x86_64 ]; do sleep 5; done \
+	else \
+		until [ -f ./$(PKG_TYPE)-deploy/$(PKG_TYPE)/*.deb ]; do sleep 5; done \
+	fi

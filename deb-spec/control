@@ -1,0 +1,12 @@
+Source: x-msrv
+Section: misc
+Priority: optional
+Maintainer: "Nikolay Turpitko" <xxx@yyy.com>
+Build-Depends: debhelper (>=9), dh-systemd
+Standards-Version: 3.9.6
+Homepage: https://github.com/nikolay-turpitko/x-msrv
+
+Package: x-msrv
+Architecture: amd64
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: Sample microservice.

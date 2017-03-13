@@ -13,3 +13,4 @@ services:
             - ./rpm-spec:/spec:ro
             - ./rpm-deploy/rpm:/rpm
             - ./deb-deploy/deb:/deb
+            - ./deb-spec:/debian:ro

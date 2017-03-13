@@ -4,15 +4,16 @@ FROM centos/systemd
 
 MAINTAINER "Nikolay Turpitko" <nikolay [at] turpitko.com>
 
-COPY rpms /rpms
-
 RUN yum -q -y install deltarpm; \
     yum -q -y update; \
     yum -q -y install \
         rsyslog \
         man; \
-    yum -q -y clean all; \
-    rpm -i /rpms/x86_64/x-msrv-0.0.1-1.el7.centos.x86_64.rpm; \
+    yum -q -y clean all
+
+COPY rpm /rpm
+
+RUN rpm -i /rpm/x86_64/x-msrv-0.0.1-1.el7.centos.x86_64.rpm; \
     systemctl enable x-msrv.service x-msrv.timer
 
 CMD ["/usr/sbin/init"]

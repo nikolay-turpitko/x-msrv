@@ -1,10 +1,18 @@
+.PHONY: all clean build
+
 SHELL=/bin/bash
 
-all:
-	@sudo rm -rf ./deploy/rpms/x86_64
-	@sudo docker-compose -f ./docker-compose-build.yml up --build
-	@until [ -d ./deploy/rpms/x86_64 ]; do sleep 5; done
-	@sudo docker-compose up -d --build
+export PKG_TYPE=rpm
+
+all: | clean build
+	@sudo PKG_TYPE=$(PKG_TYPE) docker-compose up -d --build
 	@read -p "Press any key to shut down test... " -n1 -s
-	@sudo docker-compose down
-	@sudo docker-compose -f ./docker-compose-build.yml rm -f -v
+	@sudo PKG_TYPE=$(PKG_TYPE) docker-compose down
+	@sudo PKG_TYPE=$(PKG_TYPE) docker-compose -f ./docker-compose-build.yml rm -f -v
+
+clean:
+	@sudo rm -rf ./$(PKG_TYPE)-deploy/$(PKG_TYPE)/x86_64
+
+build:
+	@sudo PKG_TYPE=$(PKG_TYPE) docker-compose -f ./docker-compose-build.yml up --build
+	@until [ -d ./$(PKG_TYPE)-deploy/$(PKG_TYPE)/x86_64 ]; do sleep 5; done

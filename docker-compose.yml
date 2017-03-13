@@ -2,7 +2,7 @@ version: '2'
 
 services:
     app:
-        build: ./deploy
+        build: ./${PKG_TYPE}-deploy
         container_name: x-msrv-app
         depends_on:
             - db

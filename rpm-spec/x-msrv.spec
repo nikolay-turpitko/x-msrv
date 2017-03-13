@@ -26,19 +26,23 @@ rm -rf %{_builddir}
 mkdir -p %{_builddir}%{_libdir}/x-msrv/bin/
 mkdir -p %{_builddir}%{_sysconfdir}/x-msrv/
 mkdir -p %{_builddir}%{_unitdir}
+mkdir -p %{_builddir}%{_mandir}/man1
 cp -p $appdir/LICENSE %{_builddir}
 cp -p $GOPATH/bin/x-msrv %{_builddir}%{_libdir}/x-msrv/bin/
 cp -p $appdir/systemd/x-msrv.service %{_builddir}%{_unitdir}
 cp -p $appdir/systemd/x-msrv.timer %{_builddir}%{_unitdir}
+pandoc $appdir/x-msrv.md -s -t man > %{_builddir}%{_mandir}/man1/x-msrv.1
 
 %install
 rm -rf %{buildroot}
 mkdir -p %{buildroot}%{_libdir}/x-msrv/bin/
 mkdir -p %{buildroot}%{_sysconfdir}/x-msrv/
 mkdir -p %{buildroot}%{_unitdir}
+mkdir -p %{buildroot}%{_mandir}/man1
 cp -p %{_builddir}%{_libdir}/x-msrv/bin/x-msrv %{buildroot}%{_libdir}/x-msrv/bin/
 cp -p %{_builddir}%{_unitdir}/x-msrv.service %{buildroot}%{_unitdir}
 cp -p %{_builddir}%{_unitdir}/x-msrv.timer %{buildroot}%{_unitdir}
+cp -p %{_builddir}%{_mandir}/man1/x-msrv.1 %{buildroot}%{_mandir}/man1
 
 %clean
 rm -rf %{_builddir}
@@ -68,6 +72,7 @@ fi
 
 %files
 %doc LICENSE
+%{_mandir}/man1/*
 /usr/lib64/x-msrv/bin/x-msrv
 %config %{_unitdir}/x-msrv.service
 %config %{_unitdir}/x-msrv.timer

@@ -94,6 +94,10 @@ For that it uses `./deploy/rpms` subdir, which is mapped as a volume to previous
 described building and packaging Docker container, which puts resulting rpm file
 into this directory.
 
+This blueprint implementation installs simple man page for microservice (just
+to illustrate how to do it). I included man installation into Docker image, so
+that this feature could be tested. Use following command to check it from host:
 
-TODO: man file
+    sudo docker-compose exec app man x-msrv
+
 TODO: config file

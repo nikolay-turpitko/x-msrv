@@ -9,7 +9,8 @@ COPY rpms /rpms
 RUN yum -q -y install deltarpm; \
     yum -q -y update; \
     yum -q -y install \
-        rsyslog; \
+        rsyslog \
+        man; \
     yum -q -y clean all; \
     rpm -i /rpms/x86_64/x-msrv-0.0.1-1.el7.centos.x86_64.rpm; \
     systemctl enable x-msrv.service x-msrv.timer

@@ -12,6 +12,7 @@ ENV container=docker \
     GOPATH=/go
 
 RUN yum -q -y install deltarpm; \
+    yum -q -y install epel-release; \
     yum -q -y update; \
     yum -q -y install \
         autoconf \
@@ -34,6 +35,7 @@ RUN yum -q -y install deltarpm; \
         mercurial \
         openssl \
         openssl-devel \
+        pandoc \
         pcre-devel \
         pkgconfig \
         readline-devel \

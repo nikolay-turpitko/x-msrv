@@ -1,0 +1,10 @@
+{ "id": 0, "msg": "Some message-0", "ext": [ {"ext1": "xxx"}, {"ext2": 42} ] }
+{ "id": 1, "msg": "Some message-1", "ext": [ {"ext1": "xxx"}, {"ext2": 42} ] }
+{ "id": 2, "msg": "Some message-2", "ext": [ {"ext1": "xxx"}, {"ext2": 42} ] }
+{ "id": 3, "msg": "Some message-3", "ext": [ {"ext1": "xxx"}, {"ext2": 42} ] }
+{ "id": 4, "msg": "Some message-4", "ext": [ {"ext1": "xxx"}, {"ext2": 42} ] }
+{ "id": 5, "msg": "Some message-5", "ext": [ {"ext1": "xxx"}, {"ext2": 42} ] }
+{ "id": 6, "msg": "Some message-6", "ext": [ {"ext1": "xxx"}, {"ext2": 42} ] }
+{ "id": 7, "msg": "Some message-7", "ext": [ {"ext1": "xxx"}, {"ext2": 42} ] }
+{ "id": 8, "msg": "Some message-8", "ext": [ {"ext1": "xxx"}, {"ext2": 42} ] }
+{ "id": 9, "msg": "Some message-9", "ext": [ {"ext1": "xxx"}, {"ext2": 42} ] }

@@ -23,7 +23,7 @@ services:
     queue:
         image: nsqio/nsq
         container_name: x-msrv-queue
-        command: /nsqd --lookupd-tcp-address=nsqlookupd:4160
+        command: /nsqd --lookupd-tcp-address=queue-lookup:4160
         ports:
             - "4150:4150"
             - "4151:4151"

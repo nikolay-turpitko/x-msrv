@@ -23,5 +23,9 @@ _testmain.go
 *.test
 *.prof
 
+*.swp
+
 rpm-deploy/rpm
 deb-deploy/deb
+vendor
+.glide

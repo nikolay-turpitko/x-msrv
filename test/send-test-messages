@@ -1,0 +1,9 @@
+#!/bin/bash
+
+for value in {1..10}
+do
+    curl -sS --data-binary @valid.json "http://localhost:4151/mpub?topic=testtopic"
+    echo
+    curl -sS --data-binary @invalid.json "http://localhost:4151/mpub?topic=testtopic"
+    echo
+done

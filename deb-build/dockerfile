@@ -14,11 +14,12 @@ ENV container=docker \
 RUN apt-get -q -y update; \
     apt-get -q -y upgrade; \
     apt-get -q -y install \
-        make \
         devscripts \
-        lintian \
         dh-make \
         dh-systemd \
+        git \
+        lintian \
+        make \
         pandoc; \
     apt-get -q -y autoremove; \
     apt-get -q -y autoclean; \

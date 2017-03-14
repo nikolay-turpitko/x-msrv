@@ -53,7 +53,6 @@ I created and tested this solution on the following host environment:
 - GNU Make 4.1
 - GNU bash, version 4.3.46(1)-release (x86_64-pc-linux-gnu)
 
-
 ## High-level solution description
 
 Microservice implemented as a `systemd` timer.
@@ -61,13 +60,9 @@ Microservice implemented as a `systemd` timer.
 This way `systemd` manages service creation and termination, regular execution,
 restart, priveleges, etc.
 
-All required settings can be changed via ./`systemd`/x-msrv.service and
-./`systemd`/x-msrv.timer files. Particularly, interval between execution can be
-changed in ./`systemd`/x-msrv.timer file. Both files can be amended by administrator
-after installation.
-
-`systemd` can be configured to send desired termination signal. It sends `SIGTERM`
-by default. It can be also configured to implement desired kill strategy.
+`systemd` can be configured to send desired termination signal. It sends
+`SIGTERM` by default. It can be also configured to implement desired kill
+strategy.
 
 If required, `systemd` can be used within Docker container (see
 https://lwn.net/Articles/676831/ about issues). Though for many simple
@@ -83,15 +78,58 @@ view) to replace it with some alternative, if necessary. So, I want to
 emphasize, that I used Docker container here mostly to create reproducible test
 environment, not for deployment into production.
 
-Use `make` to build and execute application.
+## Implementation details
 
-Build script in `Makefile` uses Docker Compose to create Docker container, which
-performs actual Go build and RPM packaging. After that Docker Compose used again
-to prepare execution environment and start microservice within Docker container.
+After service is started and parsed configuration, it creates NSQ consumer and
+registers concurrent handlers for incoming messages. Every handler atomically
+increments and checks counter of handled messages. When counter exceeds
+configuration parameter `max-messages`, handler sends signal to the channel,
+signaling to main goroutine that job is done and consumer should be stopped.
 
-File `./docker-compose-build.yml` used to prepare Docker container for build
-and `./docker-compose.yml` - to execute app. Notice, that environment variable
-`PKG_TYPE` (rpm/deb) should be provided to Docker Compose.
+If handler receives message while it is stopping due enough messages have been
+received already (that is counter is greater then configured threshold), it
+rejects message, returning error to the caller. NSQ then automatically
+re-enqueus this message to be processed later.
+
+Meanwhile, main goroutine wait on select statement and handle finalization
+signals from several sources: 
+
+- the channel, shared with message handlers and mentioned above;
+- process termination signal channel;
+- timeout timer channel;
+- NSQ consumer stop channel.
+
+Last of them terminates waiting circle and whole service's process, and 3 other
+invoke `consumer.Stop()`, causing consumer to shout itself down and send stop
+signal, unlocking service to terminate itself.
+
+Timeout is used to shout down service awaiting incoming messages from empty
+channel. This is necessary because I used external (systemd) timer to
+periodically create new process, so it's better to terminate old one before
+next timer event triggered, otherwise timer will keep creating new processes,
+all hung up awaiting messages from empty queue, which can lead to unnecessary
+consumption of operation system's resources. 
+
+Note, that as easily service could be implemented as a single long lived
+process, which can use internal timer to periodically wake up to process
+portion of incoming messages. But here I want to leverage sentence #7 of
+original requirement. Depending on many factors (how many messages and how
+often should be processed, what other work the same server must do, etc) one
+solution can be more preferable or another. I assume, that task should be
+executed relatively seldom and it's better to free resources for other work
+when it is not executed.  Also, this approach requires a bit less coding.
+
+If I go for internal timeout solution, I would try to use
+`consumer.ChangeMaxInFlight(0)` to pause message flow after handler signaled
+that enough messages have been received. On signal from internal timer, I'd set
+this parameter again to the value from the configuration file.
+
+## Build and test environment
+
+Build script in `Makefile` uses Docker Compose to create Docker container,
+which performs actual Go build and RPM packaging. After that Docker Compose
+used again to prepare execution environment and start microservice within
+Docker container.
 
 Directory `./rpm-build` contains dockerfile and Makefile for build and RPM
 packaging. They used to prepare container with required versions of go compiler
@@ -100,20 +138,77 @@ arguments via `./docker-compose-build.yml`. Sources and output directories and
 spec file passed to container via volumes, mapped to host directories. Actual
 build commands are in the `./rpm-spec/x-msrv.spec` file, which is a file used
 by RPM package manager. Spec file contains instructions to build Go sources and
-to package binary files, documentation and configuration files into RPM archive.
+to package binary files, documentation and configuration files into RPM
+archive.
 
 Similarly, directory `./deb-build` contains dockerfile and required scripts to
 build deb package in Docker container. Directory `./deb-spec` contains custom
 files to be copied into `debian` directory, generated by `dh_make`, so these
 files overwrites defaults.
 
-Directory `systemd` contains our service's unit and timer description files for
-`systemd`.
-
 Directory `./*-deploy` contains dockerfile to create microservice's Docker
 container.  For that it uses `./rpm-deploy/rpms` or `./deb-deploy/debs` subdir,
 which is mapped as a volume to previously described building and packaging
 Docker container, which puts resulting rpm file into this directory.
+
+## Configuration
+
+Directory `systemd` contains service's unit and timer description files for
+`systemd`.  Both files can be amended by administrator after installation.
+Interval between execution can be changed in `./systemd/x-msrv.timer` file.
+Note that timer accuracy configured to 1 second for this task, default value is
+1 minute.
+
+File `./docker-compose-build.yml` used to prepare Docker container for build
+and `./docker-compose.yml` - to execute app. Notice, that environment variable
+`PKG_TYPE` (rpm/deb) should be provided when invoking Docker Compose.
+
+Service uses configuration file, which it seeks in the `/etc/x-msrv`.
+Configuration file contains settings for NSQ and Aerospike, and service's
+execution timeout.  During build and deployment files from `./etc/` copied to
+`/etc/x-msrv`.  Viper, used to parse configuration, ignores file extension and
+understands various file formats, so only path and base name matters to
+discover file, extension should correspond to file format.
+
+Service accepts flag `-cfg` to overwrites path to configuration file during
+local tests.
+
+For periodical execution during local tests (on host, not within container)
+service may be started as following:
+
+    watch -n 10 go run *.go -cfg=./etc/x-msrv-local
+
+## How to test
+
+Use `make` to build and execute application. By default `make` will build rpm
+package and invoke CentOS-based container to deploy it. Use `make PKG_TYPE=deb`
+to build debian package and deploy it into Ubuntu container.
+
+Initial build may work quite long due Docker image preparation. Next time build
+will work faster, because Docker will use caches.
+
+When build finishes it will start NSQ, Aerospike and microservice in Docker
+containers and pause awaiting keypress (after keypress it will destroy all
+containers). All tests and checks should be performed in another terminal
+window while build awaiting for keypress.
+
+To check service's status and logs use:
+
+    sudo PKG_TYPE=rpm docker-compose exec app systemctl status x-msrv
+    sudo PKG_TYPE=rpm docker-compose exec app journalctl -efx
+
+To send test messages into queue execute:
+
+	./test/send-test-messages
+	
+Note, that script sends some amount of invalid JSON messages to illustrate
+error handling. So, error messages about invalid JSON format in the log are
+normal.
+
+To check data saved in DB run:
+
+    sudo docker run --net xmsrv_x-msrv-net -it aerospike/aerospike-tools aql -h x-msrv-db
+    aql> select * from test
 
 This blueprint implementation installs simple man page for microservice (just
 to illustrate how to do it). I included man installation into Docker image, so
@@ -121,10 +216,4 @@ that this feature could be tested. Use following command to check it from host:
 
     sudo PKG_TYPE=rpm docker-compose exec app man x-msrv
 
-BTW, to check service status and logs use:
 
-    sudo PKG_TYPE=rpm docker-compose exec app systemctl status x-msrv
-    sudo PKG_TYPE=rpm docker-compose exec app journalctl -efx
-
-Service's configuration file is in the `/etc/x-msrv/`, it is copied
-during build from `./etc/`.
